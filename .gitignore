@@ -1,0 +1,10 @@
+build/.
+build/
+Data/.
+dist/
+dist/.
+icalgosocdemo.egg-info/.
+*.gz
+icalgodemo/data/20161212_IEXTP1_TOPS1.5.pcap
+icalgodemo/data/live.txt
+*.pyc

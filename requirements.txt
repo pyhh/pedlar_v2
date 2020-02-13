@@ -1,0 +1,7 @@
+# Trading
+requests
+pandas
+matplotlib
+websocket
+zeromq
+

@@ -1,0 +1,9 @@
+include icalgodemo/data/*_test.csv
+include icalgodemo/data/*_train.csv
+
+include icalgodemo/data/GBPUSD_train.csv
+include icalgodemo/data/GBPUSD_test.csv
+include icalgodemo/data/SPY_train.csv
+include icalgodemo/data/SPY_test.csv
+include icalgodemo/data/VIX_train.csv
+include icalgodemo/data/VIX_test.csv
