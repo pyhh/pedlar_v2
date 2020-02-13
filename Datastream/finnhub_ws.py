@@ -1,5 +1,5 @@
 
-# python3 finnhub_stream.py QQQ OANDA:GBP_USD OANDA:DE10YB_EUR BINANCE:BTCUSDT FOREX:401484392
+# python3 finnhub_ws.py FINNHUB_API_KEY QQQ OANDA:GBP_USD OANDA:DE10YB_EUR BINANCE:BTCUSDT FOREX:401484392
 
 #https://pypi.org/project/websocket_client/
 import websocket
@@ -65,12 +65,15 @@ class Finnhub_Websocket():
 if __name__ == "__main__":
 
     import sys 
+
+    key = sys.argv[1]
+
     try:
-        tickers = sys.argv[1:]
+        tickers = sys.argv[2:]
     except IndexError:
         tickers = ['AAPL','BINANCE:BTCUSDT']
 
-    Finn_zmq = Finnhub_Websocket(tickers=tickers)
+    Finn_zmq = Finnhub_Websocket(tickers=tickers,API_key=key)
     Finn_zmq.create_socket()
 
 
