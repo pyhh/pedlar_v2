@@ -29,9 +29,10 @@ class WSClient(object):
        '''
 
         # Socket to talk to server
+        # Global variable as need to pass to function 
         context = zmq.Context()
-        self.socket = context.socket(zmq.PUB)
-        self.socket.connect(tcp)
+        zmqsocket = context.socket(zmq.PUB)
+        zmqsocket.connect(tcp)
         print('IEX publisher connect to port 7000')
         
         # connect to correct socket 
@@ -52,7 +53,7 @@ class WSClient(object):
             def on_message(self, data):
                 prased = _tryJson(data, raw)
                 on_data(prased)
-                self.socket.send_multipart([bytes('IEX', 'utf-8'), bytes(json.dumps(prased), 'utf-8')])
+                zmqsocket.send_multipart([bytes('IEX', 'utf-8'), bytes(json.dumps(prased), 'utf-8')])
 
         self._Namespace = Namespace
 
@@ -60,10 +61,10 @@ class WSClient(object):
         self.socketIO = SocketIO(_SIO_URL_PREFIX, _SIO_PORT)
         self.namespace = self.socketIO.define(self._Namespace, self.addr)
         for t in self.tickers:
-            if self.addr == '1.0/tops':
+            if self.addr == '/1.0/tops':
                 self.namespace.emit('subscribe', t)
                 print('Subscribe to IEX {}'.format(t))
-            if self.addr == '1.0/deep':
+            if self.addr == '/1.0/deep':
                 subscribe_dict = {'channels':['deep']}
                 subscribe_dict['symbols'] = [t]
                 self.namespace.emit('subscribe', json.dumps(subscribe_dict))
