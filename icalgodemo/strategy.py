@@ -63,7 +63,8 @@ class Strategy():
                 self.portfolio_value = self.holding * self.lastask + self.cash 
                 self.pnl.append(self.portfolio_value - self.startcash)  
                 self.holdings.append(self.holding)   
-                self.period.append(self.lasttime)  
+                self.period.append(self.lasttime)
+          
         return None 
 
     def rebalance(self):
@@ -101,9 +102,7 @@ class Strategy():
             self.lastask = None 
             self.rebalance()
             self.valuation()
-            # Need to redefine ondata for multiple assets 
-            # Comented out - 'self has no attribute onhistory' - Lucien
-            #self.target = self.onhistory(self.dataslice) # target is now an array of target 
+            self.target = self.ondataslice(self.dataslice) # target is now an array of target 
 
     def load_multidata(self,datasets = None):
         mydir = os.path.dirname(__file__)
@@ -173,6 +172,10 @@ class Strategy():
 
     def ondata(self,bid,ask):
         holding = np.random.random()
+        return holding
+    
+    def ondataslice(self,slice):
+        holding = np.random.random(size=len(slice))
         return holding
 
     ########  Plot strategy results ########## 
