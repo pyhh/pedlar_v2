@@ -92,7 +92,7 @@ class Strategy():
 
 
     def run_multiple(self,multiple_data=None,debug=False):
-        for row in multiple_data.iterruples():
+        for row in multiple_data.itertuples():
             # prepare data slice with lookback 
             self.dataslice = None 
             # update data for internal system 
@@ -102,7 +102,8 @@ class Strategy():
             self.rebalance()
             self.valuation()
             # Need to redefine ondata for multiple assets 
-            self.target = self.onhistory(self.dataslice) # target is now an array of target 
+            # Comented out - 'self has no attribute onhistory' - Lucien
+            #self.target = self.onhistory(self.dataslice) # target is now an array of target 
 
     def load_multidata(self,datasets = None):
         mydir = os.path.dirname(__file__)
