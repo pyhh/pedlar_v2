@@ -63,7 +63,8 @@ class Strategy():
                 self.portfolio_value = self.holding * self.lastask + self.cash 
                 self.pnl.append(self.portfolio_value - self.startcash)  
                 self.holdings.append(self.holding)   
-                self.period.append(self.lasttime)  
+                self.period.append(self.lasttime)
+          
         return None 
 
     def rebalance(self):
@@ -92,7 +93,7 @@ class Strategy():
 
 
     def run_multiple(self,multiple_data=None,debug=False):
-        for row in multiple_data.iterruples():
+        for row in multiple_data.itertuples():
             # prepare data slice with lookback 
             self.dataslice = None 
             # update data for internal system 
@@ -101,8 +102,48 @@ class Strategy():
             self.lastask = None 
             self.rebalance()
             self.valuation()
-            # Need to redefine ondata for multiple assets 
-            self.target = self.onhistory(self.dataslice) # target is now an array of target 
+            self.target = self.ondataslice(self.dataslice) # target is now an array of target 
+
+    def load_multidata(self,datasets = None):
+        mydir = os.path.dirname(__file__)
+
+        i = 0
+        for dataset in datasets:
+            # Read datafile and import as pd
+            filename = os.path.join(mydir, 'data','{}_train.csv'.format(dataset))
+            train_data_temp = pd.read_csv(filename,names=['Time','Bid'+str(i),'Ask'+str(i)],header=0)
+            i = i+1
+            # Format as datetime index dataframe
+            datetime_series = pd.to_datetime(train_data_temp['Time'])
+            datetime_index  = pd.DatetimeIndex(datetime_series.values)
+            train_data_temp = train_data_temp.set_index(datetime_index)
+
+            # Drop redundant Time column
+            train_data_temp.drop('Time',axis=1,inplace=True)
+
+            # Concatenate master data series
+            if not 'train_data' in locals():
+                train_data = train_data_temp
+            else:
+                train_data = pd.concat([train_data , train_data_temp],axis=1)
+
+        # Sort through data and deal with missing values
+        id_NaN = pd.isnull(train_data).any(1).nonzero()[0]
+
+        # Drop first row of dataframe if NaN found
+        while id_NaN[0] == 0:
+            train_data = train_data.drop(train_data.index[0])
+            id_NaN = pd.isnull(train_data).any(1).nonzero()[0]
+
+        # Drop last row of dataframe if NaN found
+        while id_NaN[-1:] == len(train_data.index)-1:
+            train_data = train_data.drop(train_data.index[-1:])
+            id_NaN = pd.isnull(train_data).any(1).nonzero()[0]
+
+        # Forward Fill inner NaN values
+        train_data  = train_data.fillna(method='ffill')
+
+        return train_data
 
 
     def train(self,debug=False):
@@ -117,7 +158,8 @@ class Strategy():
         else:
             self.before_trades()
             # load data from multiple assets 
-
+            train_data = self.load_multidata(self.datasets)
+            print(train_data)
             self.run_multiple(multiple_data=train_data)
 
     
@@ -130,6 +172,10 @@ class Strategy():
 
     def ondata(self,bid,ask):
         holding = np.random.random()
+        return holding
+    
+    def ondataslice(self,slice):
+        holding = np.random.random(size=len(slice))
         return holding
 
     ########  Plot strategy results ########## 
@@ -184,7 +230,7 @@ if __name__=='__main__':
 
     time_s = time.time()
     
-    strat = Strategy(datasets='GBPUSD')
+    strat = Strategy(multiasset=True,datasets=['VIX','SPY'])
     strat.train()
     strat.download_results()
     strat.save('Mystrategy')
