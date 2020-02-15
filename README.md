@@ -1,5 +1,5 @@
 # pedlar_v2
-New version of pedlar 
+New version of pedlar, the trading platform for Imperial Algosoc 
 
 ## strategy 
 strategy is used to perform simple backtesting for single/multiple assets. Time Series is assumed to be aligned 
@@ -15,3 +15,9 @@ pcap: IEX pcap files TOPS / DEEP
 Live trading using websockets data on US Equities and Forex from IEX and Finnhub  
 
 A live trading agent has a function create datastream which will run each websockets from different sources and poll together through zeromq. 
+
+### Contributors 
+
+Head of Technology: Thomas Wong  
+
+Developers: Lucien Viala 
