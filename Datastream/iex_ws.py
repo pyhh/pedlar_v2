@@ -1,3 +1,6 @@
+# python3 iex_ws.py TOPS QQQ SPY BLK
+# 
+# 
 # pyEX 
 # https://pypi.org/project/socketIO-client-nexus/ 0.7.6 or above
 
