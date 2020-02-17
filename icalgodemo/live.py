@@ -84,6 +84,8 @@ class LiveTrading():
                 if exchange == 'Finnhub':
                     ticker = d['data'][0]['s']
                     fv = d['data'][0]['p']
+                    # No bid ask given by Finnhub so uses default values 
+
                 if exchange == 'IEX':
                     ticker = d['symbol']
                     if 'askPrice' <=0:
@@ -91,6 +93,7 @@ class LiveTrading():
                     else:
                         fv = (d['bidPrice']+d['askPrice']) / 2
                         # Set t-cost ratio 
+                        self.tcost_ratio = (d['askPrice'] - d['bidPrice'])/fv
                 # Update FairValue 
                 self.fairvalue.setdefault(exchange,dict())[ticker] = fv
             except json.decoder.JSONDecodeError:
