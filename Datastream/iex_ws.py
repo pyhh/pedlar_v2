@@ -42,7 +42,7 @@ class WSClient(object):
         self.addr = addr
         self.tickers = tickers
 
-        on_data = on_data or print
+        on_data = on_data or print 
 
         class Namespace(BaseNamespace):
             def on_connect(self, *data):
