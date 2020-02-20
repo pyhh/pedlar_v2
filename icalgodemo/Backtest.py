@@ -2,17 +2,19 @@ import pandas as pd
 import numpy as np
 import os, pickle, time
 import heapq, itertools
-
-
-from timebudget import timebudget
-timebudget.set_quiet()  # don't show measurements as they happen
-
-# pip3 install git+https://github.com/ThomasWong2022/IEXTools.git
-import IEXTools
 from datetime import datetime 
-
 ## Namedtuples for saving records 
 from collections import namedtuple # type(a).__name__ to get name of a namedtuple 
+
+
+# pip3 install git+https://github.com/ThomasWong2022/IEXTools.git
+try:
+    import IEXTools
+except:
+    pass
+
+
+
 RebalanceRecord = namedtuple('Rebalance',['time','exchange','name','holding','fairvalue','NAV'])
 
 
@@ -42,7 +44,7 @@ class DataLoader():
                 protocol = 1.6
             self.dataloader = IEXTools.Parser(filename,tops_version=protocol)
 
-    @timebudget
+    
     def next(self):
         
         if self.source == 'csv' and self.exchange == 'IEX':
@@ -95,7 +97,7 @@ class Portfolio():
     def __init__(self,cash=100000):
         
         self.cash = cash 
-        self.NAV = self.cash 
+        self.profit = 0
 
 # Triats 
 class Event():
@@ -134,9 +136,12 @@ class RebalanceEvent():
         self.asset = asset
         self.priority = priority 
 
-    @timebudget                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
     def process(self):
+        # TODO: How to handle missing bid or ask
+
         # Compute NAV changes for the asset 
+        # TODO Do not update changes if bid or ask is missing??
         if self.asset.holding >= 0:
             NAV_change = self.asset.holding * (self.asset.newbid - self.asset.oldbid)
         else:
@@ -144,6 +149,7 @@ class RebalanceEvent():
 
         # Update Cash 
         change = self.asset.target - self.asset.holding
+        # TODO Raise error if trying to buy(sell) when ask(bid) is missing 
         if change > 0:
             self.portfolio.cash = self.portfolio.cash - change * self.asset.newask
         else:
@@ -152,13 +158,14 @@ class RebalanceEvent():
         # Update Transaction cost
         tcost = abs((self.asset.newask - self.asset.newbid) * change)
         # Update NAV 
-        self.portfolio.NAV = self.portfolio.NAV + NAV_change - tcost
+        self.portfolio.profit= self.portfolio.profit + NAV_change - tcost
     
         # Update Asset Holding 
+        # Check tick is valid for updating fairvalue
         self.asset.holding = self.asset.target
         fairvalue = (self.asset.newbid + self.asset.newask)/2
         # Generate record 
-        self.record = RebalanceRecord(self.priority,self.asset.exchange,self.asset.name,self.asset.holding,fairvalue,self.portfolio.NAV)
+        self.record = RebalanceRecord(self.priority,self.asset.exchange,self.asset.name,self.asset.holding,fairvalue,self.portfolio.profit)
 
         return self.portfolio, self.asset, self.record
 
@@ -177,7 +184,7 @@ class Backtest():
         self.source = source 
         
         if self.source == 'csv':
-            Assets = [Asset(f,self.exchange,'csv') for f in self.assetnames] # Private list of Assets 
+            Assets = [Asset(f,self.exchange) for f in self.assetnames] # Private list of Assets 
             self.Assets = dict(zip(self.assetnames,Assets)) # Hashmap of Assets strut Private 
         elif self.source == 'pcap':
             # dynamic dictionary of assets update as in live trading 
@@ -186,10 +193,12 @@ class Backtest():
         self.EventQueue = [] # Priority Queue Private 
         self.EventCounter = itertools.count() # Tie-breaker for Priority Queue Private 
 
+        print('Backtest Start ')
+
         return None 
 
 
-    @timebudget
+    
     def Process_Event(self,event=None,timestamp=None):
 
         eventtype = event.eventtype
@@ -209,8 +218,11 @@ class Backtest():
             # Update assets for latest prices
             Current_Asset.oldbid = Current_Asset.newbid
             Current_Asset.oldask = Current_Asset.newask
-            Current_Asset.newbid = Current_Bid
-            Current_Asset.newask = Current_Ask
+            # TODO How to Handle missing bid ask in quotes 
+            if Current_Bid >0:
+                Current_Asset.newbid = Current_Bid
+            if Current_Ask >0:
+                Current_Asset.newask = Current_Ask
 
             # Rebalance 
             NewRebalance = RebalanceEvent(portfolio=self.Portfolio,asset=Current_Asset,priority=timestamp)
@@ -233,7 +245,7 @@ class Backtest():
             self.outputfile.write('\n')
         return None 
 
-    @timebudget
+   
     def run(self,train=True, debug=False):
 
         # Populate EventQueue with data events 
@@ -271,12 +283,28 @@ class Backtest():
     ########  Functions to be supplied by user ###############################################
     
     def before_trades(self):
+        import csv 
+        fieldnames = ['Time','Bid', 'Ask']
+        self.spyfile = open('data/GLD_train.csv','w')
+        self.qqqfile = open('data/VXX_train.csv','w')
+        self.SPYwriter = csv.DictWriter(self.spyfile, fieldnames=fieldnames)
+        self.QQQwriter = csv.DictWriter(self.qqqfile, fieldnames=fieldnames)
+        self.SPYwriter.writeheader()
+        self.QQQwriter.writeheader()
+        self.counter = 0
         return None
 
-    # Public 
-    # (&self,Hashmap) --> f64 
     def ondata(self,dataslice):  
-        holding = np.random.random()
+        if dataslice.symbol == 'GLD' and self.counter<1000:
+            self.SPYwriter.writerow({'Time':dataslice.timestamp,'Bid': dataslice.bid_price_int / 10000, 'Ask': dataslice.ask_price_int / 10000})
+            self.counter += 1
+        if dataslice.symbol == 'VXX' and self.counter<1000:
+            self.QQQwriter.writerow({'Time':dataslice.timestamp,'Bid': dataslice.bid_price_int / 10000, 'Ask': dataslice.ask_price_int / 10000})
+            self.counter += 1
+        if self.counter >=1000:
+            self.spyfile.close()
+            self.qqqfile.close()
+        holding = np.random.randint(1,10)
         return holding
 
 ############################################################################################
@@ -297,9 +325,9 @@ if __name__=='__main__':
 
     if test == 'csv':
         time_s = time.time()
-        strat = Backtest(assets=['VIX','SPY'],source='csv',exchange='IEX',filename='csvbacktest.txt').run(debug=False)
+        strat = Backtest(assets=['VIX','SPY'],source='csv',exchange='IEX',filename='data/csvbacktest.txt').run(debug=False)
         print(time.time() - time_s)
     elif test == 'iexpcap':
-        strat = Backtest(pcaps=['20161212_IEXTP1_TOPS1.5'],source='pcap',exchange='IEX',filename='pcapbacktest.txt').run(debug=False)
+        strat = Backtest(pcaps=['20161212_IEXTP1_TOPS1.5'],source='pcap',exchange='IEX',filename='data/pcapbacktest.txt').run(debug=False)
 
     

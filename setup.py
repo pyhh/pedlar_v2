@@ -7,13 +7,13 @@ with open("README.md", 'r') as fh:
 
 setuptools.setup(
   name="icalgosocdemo",
-  version='0.0.11',
+  version='0.0.12',
   author="thomas",
   author_email="thomaswong2022@users.noreply.github.com",
   description="Imperial Algorithmic Trading Soceity Demo",
   long_description=long_description,
   long_description_content_type="text/markdown",
-  url="https://github.com/ThomasWong2022/pedlar_demo/",
+  url="https://github.com/ThomasWong2022/pedlar_v2/",
   packages=["icalgodemo"],
   include_package_data=True,
   classifiers=[
@@ -29,7 +29,6 @@ setuptools.setup(
     'pandas',
     'matplotlib',
     'zeromq',
-    'protobuf',
     'websocket',
     'socketIO_client_nexus'
   ]

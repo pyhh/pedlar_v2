@@ -4,4 +4,4 @@ pandas
 matplotlib
 websocket
 zeromq
-
+socketIO_client_nexus

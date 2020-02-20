@@ -8,3 +8,9 @@ icalgosocdemo.egg-info/.
 icalgodemo/data/20161212_IEXTP1_TOPS1.5.pcap
 icalgodemo/data/live.txt
 *.pyc
+icalgodemo/data/pcapbacktest.txt
+icalgosocdemo.egg-info/dependency_links.txt
+icalgosocdemo.egg-info/PKG-INFO
+icalgosocdemo.egg-info/requires.txt
+icalgosocdemo.egg-info/SOURCES.txt
+icalgosocdemo.egg-info/top_level.txt
