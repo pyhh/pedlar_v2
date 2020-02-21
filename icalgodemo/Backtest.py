@@ -233,7 +233,7 @@ class Backtest():
             if Current_Ask >0:
                 Current_Asset.newask = Current_Ask
 
-            # Rebalance 
+            # Current Assumption: Always Rebalance to the target specified by previous tick 
             NewRebalance = RebalanceEvent(portfolio=self.Portfolio,asset=Current_Asset,priority=timestamp)
             heapq.heappush(self.EventQueue,(timestamp,next(self.EventCounter),NewRebalance))
             
