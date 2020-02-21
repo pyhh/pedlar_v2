@@ -16,7 +16,7 @@ except:
 
 
 # Define records to be printed 
-RebalanceRecord = namedtuple('Rebalance',['time','exchange','name','holding','fairvalue','NAV'])
+RebalanceRecord = namedtuple('Rebalance',['time','exchange','name','holding','fairvalue','Profit'])
 
 
 class DataLoader():
@@ -30,15 +30,15 @@ class DataLoader():
         self.exchange = exchange
         
         if source=='csv' and train:
-            filename = './data/{}_train.csv'.format(name)
+            filename = 'data/{}_train.csv'.format(name)
             self.dataloader = pd.read_csv(filename,iterator=True)
 
         if source=='csv' and not train:
-            filename = './data/{}_test.csv'.format(name)
+            filename = 'data/{}_test.csv'.format(name)
             self.dataloader = pd.read_csv(filename,iterator=True)
 
         if source=='pcap':
-            filename = './data/{}.pcap'.format(self.name)
+            filename = 'data/{}.pcap'.format(self.name)
             if '1.5' in self.name:
                 protocol = 1.5
             else:
@@ -144,9 +144,15 @@ class RebalanceEvent():
         # Compute NAV changes for the asset 
         # TODO Do not update changes if bid or ask is missing??
         if self.asset.holding >= 0:
-            NAV_change = self.asset.holding * (self.asset.newbid - self.asset.oldbid)
+            if self.asset.newbid >0 and self.asset.oldbid>0:
+                NAV_change = self.asset.holding * (self.asset.newbid - self.asset.oldbid)
+            else:
+                NAV_change = 0
         else:
-            NAV_change = self.asset.holding * (self.asset.newask - self.asset.oldask)
+            if self.asset.newask >0 and self.asset.oldask>0:
+                NAV_change = self.asset.holding * (self.asset.newask - self.asset.oldask)
+            else:
+                NAV_change = 0
 
         # Update Cash 
         change = self.asset.target - self.asset.holding
@@ -157,8 +163,12 @@ class RebalanceEvent():
             self.portfolio.cash = self.portfolio.cash - change * self.asset.newbid
 
         # Update Transaction cost
-        tcost = abs((self.asset.newask - self.asset.newbid) * change)
-        # Update NAV 
+        if self.asset.newask > 0 and self.asset.newbid > 0:
+            tcost = abs((self.asset.newask - self.asset.newbid) * change)
+        else:
+            tcost = 0
+
+        # Update profit 
         self.portfolio.profit= self.portfolio.profit + NAV_change - tcost
     
         # Update Asset Holding 
@@ -235,7 +245,7 @@ class Backtest():
                 heapq.heappush(self.EventQueue,(newtime,next(self.EventCounter),NewEvent))
 
             # Get user update target and update Asset attribute 
-            Current_Asset.target = self.ondata(event.dataslice)
+            Current_Asset.target = self.ondata(event.dataslice,Current_Asset)
 
         if eventtype == 'Rebalance':
             Current_Asset = self.Assets[event.asset.name]
@@ -282,29 +292,15 @@ class Backtest():
     ########  Functions to be supplied by user ###############################################
     
     def before_trades(self):
-        import csv 
-        fieldnames = ['Time','Bid', 'Ask']
-        self.spyfile = open('data/GLD_train.csv','w')
-        self.qqqfile = open('data/VXX_train.csv','w')
-        self.SPYwriter = csv.DictWriter(self.spyfile, fieldnames=fieldnames)
-        self.QQQwriter = csv.DictWriter(self.qqqfile, fieldnames=fieldnames)
-        self.SPYwriter.writeheader()
-        self.QQQwriter.writeheader()
-        self.counter = 0
         return None
 
-    def ondata(self,dataslice):  
-        if dataslice.symbol == 'GLD' and self.counter<1000:
-            self.SPYwriter.writerow({'Time':dataslice.timestamp,'Bid': dataslice.bid_price_int / 10000, 'Ask': dataslice.ask_price_int / 10000})
-            self.counter += 1
-        if dataslice.symbol == 'VXX' and self.counter<1000:
-            self.QQQwriter.writerow({'Time':dataslice.timestamp,'Bid': dataslice.bid_price_int / 10000, 'Ask': dataslice.ask_price_int / 10000})
-            self.counter += 1
-        if self.counter >=1000:
-            self.spyfile.close()
-            self.qqqfile.close()
+    def ondata(self,dataslice,Current_Asset):  
         holding = np.random.randint(1,10)
-        return holding
+        if dataslice.Ask - dataslice.Bid <=0.02:
+            return holding
+        else:
+            # Do not trade when the spraed is huge
+            return Current_Asset.holding
 
 ############################################################################################
 
@@ -326,7 +322,7 @@ if __name__=='__main__':
 
     if test == 'csv':
         time_s = time.time()
-        strat = Backtest(assets=['VIX','SPY'],source='csv',exchange='IEX',filename='data/csvbacktest.txt').run(debug=False)
+        strat = Backtest(assets=['GLD','VXX'],source='csv',exchange='IEX',filename='data/csvbacktest.txt').run(debug=False)
         print(time.time() - time_s)
     elif test == 'iexpcap':
         strat = Backtest(pcaps=['20161212_IEXTP1_TOPS1.5'],source='pcap',exchange='IEX',filename='data/pcapbacktest.txt').run(debug=False)

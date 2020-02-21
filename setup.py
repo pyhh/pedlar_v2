@@ -7,7 +7,7 @@ with open("README.md", 'r') as fh:
 
 setuptools.setup(
   name="icalgosocdemo",
-  version='0.0.12',
+  version='0.0.13',
   author="thomas",
   author_email="thomaswong2022@users.noreply.github.com",
   description="Imperial Algorithmic Trading Soceity Agent",
