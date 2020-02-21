@@ -18,18 +18,20 @@ class LiveTrading():
         self.tcpport = 'tcp://127.0.0.1:7000'
 
         self.maxdata = counter 
+        self.debug = debug
+        self.outputfile = open(filename,'a')
 
+        # Output target holdings from users
         self.newexchange = []
         self.newasset = []
         self.newtarget = []
 
+        # Internal dictionarties to keep track of the holdings and prices of the assets
         self.holding = dict()
         self.fairvalue = dict()
         
         self.cash = 100000
         self.portfolio_value = 100000 
-        self.debug = debug
-        self.outputfile = open(filename,'a')
         self.tcost_ratio = 0.0015
 
         # Setup socket 
@@ -114,6 +116,8 @@ class LiveTrading():
             # Get target from user 
             self.newexchange, self.newasset, self.newtarget = self.set_target(exchange,d) 
   
+
+    ### Main event loop of going through messages from combined streams 
     def run(self):
         counter = 0
         self.before_trades()
