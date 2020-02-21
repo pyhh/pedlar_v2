@@ -146,8 +146,14 @@ class LiveTrading():
 
     def start_datastream(self):
 
-        finnhubstream = ['python3','../Datastream/finnhub_ws.py'] 
-        iexstream = ['python3','../Datastream/iex_ws.py','TOPS'] 
+
+        mydir = os.path.dirname(__file__)
+        finnhubfilename = os.path.join(mydir, 'Datastream','finnhub_ws.py')
+        iexfilename = os.path.join(mydir, 'Datastream','iex_ws.py')
+
+        finnhubstream = ['python3',finnhubfilename] 
+        iexstream = ['python3',iexfilename ,'TOPS'] 
+        
         finnhubstream.extend([self.FINNHUB_KEY])
         finnhubstream.extend(self.tickers)
         iexstream.extend(self.tickers)
@@ -177,4 +183,3 @@ if __name__=='__main__':
 
     LiveAgent = LiveTrading(tickers=tickers,debug=True,Finnhub_key=finnhub)
     LiveAgent.run()
-

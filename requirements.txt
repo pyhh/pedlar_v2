@@ -1,7 +1,7 @@
 # Trading
-requests
-pandas
-matplotlib
-websocket-client
-pyzmq
-socketIO_client_nexus
+requests>=2.23.0
+pandas>=0.23.0
+matplotlib>=3.1
+websocket-client>=0.57.0
+pyzmq>=18.1.1
+socketIO_client_nexus>=0.7.6

@@ -28,6 +28,8 @@ pcap: IEX pcap files TOPS / DEEP
 Live trading using websockets data on US Equities and Forex from IEX and Finnhub  
 A live trading agent has a function create datastream which will run each websockets from different sources and poll together through zeromq. 
 
+
+
 ## Contributors 
 
 Head of Technology: Thomas Wong  
