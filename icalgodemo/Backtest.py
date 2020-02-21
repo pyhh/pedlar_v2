@@ -8,13 +8,14 @@ from collections import namedtuple # type(a).__name__ to get name of a namedtupl
 
 
 # pip3 install git+https://github.com/ThomasWong2022/IEXTools.git
+# Only works for Python 3.7.0 or above 
 try:
     import IEXTools
 except:
     pass
 
 
-
+# Define records to be printed 
 RebalanceRecord = namedtuple('Rebalance',['time','exchange','name','holding','fairvalue','NAV'])
 
 
@@ -178,14 +179,14 @@ class Backtest():
         self.outputfile = open(filename,'a') # Output file name
         self.assetnames = assets
         self.pcapnames = pcaps
-        self.Portfolio = Portfolio(cash=cash) # Portfolio strut Private
+        self.Portfolio = Portfolio(cash=cash) 
 
         self.exchange = exchange
         self.source = source 
         
         if self.source == 'csv':
-            Assets = [Asset(f,self.exchange) for f in self.assetnames] # Private list of Assets 
-            self.Assets = dict(zip(self.assetnames,Assets)) # Hashmap of Assets strut Private 
+            Assets = [Asset(f,self.exchange) for f in self.assetnames] 
+            self.Assets = dict(zip(self.assetnames,Assets)) 
         elif self.source == 'pcap':
             # dynamic dictionary of assets update as in live trading 
             self.Assets = dict()
@@ -193,11 +194,9 @@ class Backtest():
         self.EventQueue = [] # Priority Queue Private 
         self.EventCounter = itertools.count() # Tie-breaker for Priority Queue Private 
 
-        print('Backtest Start ')
+        print('Backtest Start Exchange {} Source {} '.format(exchange,source))
 
         return None 
-
-
     
     def Process_Event(self,event=None,timestamp=None):
 
@@ -313,6 +312,8 @@ class Backtest():
         f = open(name,mode='wb')
         pickle.dump(self,f)
         return None 
+
+###########################################################################################
 
 if __name__=='__main__':
 

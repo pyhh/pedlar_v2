@@ -11,9 +11,9 @@ from subprocess import Popen, run, TimeoutExpired
 
 class LiveTrading():
 
-    def __init__(self,counter=500,filename='data/live.txt',tickers=None,debug=False):
+    def __init__(self,counter=500,filename='data/live.txt',tickers=None,debug=False,Finnhub_key=None):
 
-
+        self.FINNHUB_KEY = Finnhub_key
         self.tickers = tickers 
         self.tcpport = 'tcp://127.0.0.1:7000'
 
@@ -88,7 +88,7 @@ class LiveTrading():
 
                 if exchange == 'IEX':
                     ticker = d['symbol']
-                    if 'askPrice' <=0:
+                    if d['askPrice'] <=0:
                         fv = d['lastSalePrice']
                     else:
                         fv = (d['bidPrice']+d['askPrice']) / 2
@@ -141,13 +141,14 @@ class LiveTrading():
     Output: exchanges: List<String>, tickers: List <String>, targets: List<f64> of equal length
     '''
     def set_target(self,exchange,tick):
-        holding = np.random.random()
+        holding = np.random.randint(1,10)
         return ['Finnhub'] , ['BINANCE:BTCUSDT'], [holding]
 
     def start_datastream(self):
 
         finnhubstream = ['python3','../Datastream/finnhub_ws.py'] 
         iexstream = ['python3','../Datastream/iex_ws.py','TOPS'] 
+        finnhubstream.extend([self.FINNHUB_KEY])
         finnhubstream.extend(self.tickers)
         iexstream.extend(self.tickers)
         iexstream.extend(['SPY','QQQ'])
@@ -168,8 +169,12 @@ if __name__=='__main__':
 
     import sys 
 
-    tickers = sys.argv[1:]
+    try:
+        finnhub = sys.argv[1]
+    except IndexError:
+        finnhub = None 
+    tickers = sys.argv[2:]
 
-    LiveAgent = LiveTrading(tickers=tickers,debug=True)
+    LiveAgent = LiveTrading(tickers=tickers,debug=True,Finnhub_key=finnhub)
     LiveAgent.run()
 

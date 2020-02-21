@@ -10,7 +10,7 @@ setuptools.setup(
   version='0.0.12',
   author="thomas",
   author_email="thomaswong2022@users.noreply.github.com",
-  description="Imperial Algorithmic Trading Soceity Demo",
+  description="Imperial Algorithmic Trading Soceity Agent",
   long_description=long_description,
   long_description_content_type="text/markdown",
   url="https://github.com/ThomasWong2022/pedlar_v2/",
@@ -28,8 +28,8 @@ setuptools.setup(
     'requests',
     'pandas',
     'matplotlib',
-    'zeromq',
-    'websocket',
+    'websocket-client',
+    'pyzmq',
     'socketIO_client_nexus'
   ]
 )
