@@ -1,4 +1,4 @@
-currency,timestamp,type,value
+currency,time,type,value
 EUR/GBP,20190101 22:05:28.172,1,0.00
 EUR/GBP,20190101 22:05:28.235,3,0.43
 EUR/GBP,20190101 22:05:28.239,3,0.69

@@ -1,9 +1,10 @@
 import csv
 import pandas as pd
 import numpy as np
-import os, time, sys
+import sys, os
 
-class DataLoader():
+
+class DataLoader:
 
     def __init__(self, filename='EURGBP.csv', source='csv'):
 
@@ -34,9 +35,9 @@ class DataLoader():
         return data
 
 
-class BOFAStrategy():
+class BaseStrategy():
 
-    def __init__(self, tick_data='EURGBP.csv', signal_data='signal.csv', debug=False):
+    def __init__(self, tick_data='EURGBP.csv', signal_data='signal.csv'):
 
         self.pnl = []
         self.holdings = []
@@ -111,10 +112,10 @@ class BOFAStrategy():
                 if next_signal is not None:
                     self.next_signal = next_signal
 
-    def download_results(self, filename):
+    def download_results(self, file_path=None):
+        file_path = 'results.csv' if file_path is None else file_path
         backtest = pd.DataFrame({'Profit': self.pnl, 'Holding': self.holdings}, index=self.period)
-        backtest.to_csv('Backtest_{}.csv'.format(filename))
-        return None
+        backtest.to_csv(file_path)
 
         ########  Functions to be supplied by user ########
 
@@ -138,6 +139,6 @@ if __name__ == '__main__':
     except IndexError:
         print('Need to provide file names for tick and signal data')
 
-    sample = BOFAStrategy(tick_data=tick_data, signal_data=signal_data)
+    sample = BaseStrategy(tick_data=tick_data, signal_data=signal_data)
     sample.run(debug=True)
-    sample.download_results('Algosoc2020')
+    sample.download_results()
