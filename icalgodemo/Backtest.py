@@ -88,6 +88,7 @@ class Asset():
         self.exchange = exchange
         self.holding = 0
         self.target = 0
+
         self.oldbid = 0
         self.oldask = 0
         self.newbid = 0
@@ -143,19 +144,15 @@ class RebalanceEvent():
 
         # Compute NAV changes for the asset 
         # TODO Do not update changes if bid or ask is missing??
-        if self.asset.holding >= 0:
-            if self.asset.newbid >0 and self.asset.oldbid>0:
-                NAV_change = self.asset.holding * (self.asset.newbid - self.asset.oldbid)
-            else:
-                NAV_change = 0
+        if self.asset.newbid >0 and self.asset.oldbid>0 and self.asset.newask >0 and self.asset.oldask>0:
+            self.asset.newmid = (self.asset.newbid + self.asset.newask)/2
+            self.asset.oldmid = (self.asset.oldbid + self.asset.oldask)/2
+            NAV_change = self.asset.holding * (self.asset.newmid - self.asset.oldmid)
         else:
-            if self.asset.newask >0 and self.asset.oldask>0:
-                NAV_change = self.asset.holding * (self.asset.newask - self.asset.oldask)
-            else:
-                NAV_change = 0
+            NAV_change = 0
 
-        # Update Cash 
         change = self.asset.target - self.asset.holding
+        # Update Cash 
         # TODO Raise error if trying to buy(sell) when ask(bid) is missing 
         if change > 0:
             self.portfolio.cash = self.portfolio.cash - change * self.asset.newask
@@ -163,8 +160,9 @@ class RebalanceEvent():
             self.portfolio.cash = self.portfolio.cash - change * self.asset.newbid
 
         # Update Transaction cost
+        # tcost is the half of the current bid ask spread 
         if self.asset.newask > 0 and self.asset.newbid > 0:
-            tcost = abs((self.asset.newask - self.asset.newbid) * change)
+            tcost = abs((self.asset.newask - self.asset.newbid) * change) / 2 
         else:
             tcost = 0
 
