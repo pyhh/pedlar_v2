@@ -22,7 +22,7 @@ class DataLoader():
         self.hasdata = True
 
         if source=='csv':
-            self.dataloader = pd.read_csv(filename,iterator=True)
+            self.dataloader = pd.read_csv(filename,iterator=True,dtype={'currency':np.str,'time':np.str,'timestamp':np.str})
 
 
     def next(self):
@@ -95,8 +95,8 @@ class BOFAStrategy():
             self.before_trades()
         # Compare data and signal time
         while self.tickreader.hasdata or self.signalreader.hasdata:
-            if pd.to_datetime(self.nexttick['time'],infer_datetime_format=True) <  pd.to_datetime(self.nextsignal['timestamp'],infer_datetime_format=True) or not self.signalreader.hasdata:
-                self.lasttime = pd.to_datetime(self.nexttick['time'],infer_datetime_format=True)
+            if self.nexttick['time'] <  self.nextsignal['timestamp'] or not self.signalreader.hasdata:
+                self.lasttime = self.nexttick['time']
                 self.lastbid = np.float(self.nexttick['bid'])
                 self.lastask = np.float(self.nexttick['ask'])
                 self.rebalance()
@@ -108,7 +108,7 @@ class BOFAStrategy():
                 if nexttick is not None:
                     self.nexttick = nexttick      
             else:
-                self.lasttime =pd.to_datetime(self.nextsignal['timestamp'],infer_datetime_format=True)
+                self.lasttime = self.nextsignal['timestamp']
                 self.onsignal(self.nextsignal['type'],self.nextsignal['value'])
                 if debug:
                     print('Time {} Type {} Value {}'.format(self.lasttime,self.nextsignal['type'],self.nextsignal['value']))
