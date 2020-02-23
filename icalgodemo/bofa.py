@@ -1,5 +1,13 @@
+# White lsted packages 
+import torch
+import tensorflow as tf
+import sklearn 
+import statsmodels 
 import pandas as pd 
 import numpy as np
+import scipy as sp
+
+# Standard package for Python 3.6
 import pickle 
 import os, time, sys
 
@@ -81,12 +89,14 @@ class BOFAStrategy():
             self.holding = self.target 
         return None
 
-    def run(self,debug=False):
-        self.before_trades()
+    def run(self,reset=False,debug=False):
+        # Reset agent on training but not for testing 
+        if reset:
+            self.before_trades()
         # Compare data and signal time
         while self.tickreader.hasdata or self.signalreader.hasdata:
             if pd.to_datetime(self.nexttick['time'],infer_datetime_format=True) <  pd.to_datetime(self.nextsignal['timestamp'],infer_datetime_format=True) or not self.signalreader.hasdata:
-                self.lasttime =pd.to_datetime(self.nexttick['time'],infer_datetime_format=True)
+                self.lasttime = pd.to_datetime(self.nexttick['time'],infer_datetime_format=True)
                 self.lastbid = np.float(self.nexttick['bid'])
                 self.lastask = np.float(self.nexttick['ask'])
                 self.rebalance()
@@ -113,6 +123,12 @@ class BOFAStrategy():
         Backtest.to_csv('Backtest_{}.csv'.format(filename))
         return None 
 
+
+    def save_agent(self,filename):
+        f = open(filename,mode='wb')
+        pickle.dump(self,f,pickle.HIGHEST_PROTOCOL)
+        print('Save Trained Agent {}'.format(filename))
+        return None 
     
     ########  Functions to be supplied by user ###############################################
     
@@ -120,11 +136,25 @@ class BOFAStrategy():
         return None
 
     def ondata(self,bid,ask):
-        holding = np.random.random()
+        holding = np.random.randint(1,5)
         return holding
 
     def onsignal(self,signaltype,signaldata):
         return None 
+
+
+    # Load pretrained Agent 
+def test_agent(agent=None,tickdata=None,signaldata=None):
+    f = open(agent,mode='wb')
+    Trained = pickle.load(f)
+    Trained.tickreader = DataLoader(filename=tickdata)
+    Trained.signalreader = DataLoader(filename=signaldata)
+    Trained.nexttick = Trained.tickreader.next()
+    Trained.nextsignal = Trained.signalreader.next()
+    Trained.run(reset=False,debug=False)
+    Trained.download_results(agent+'test')
+    print('Agent {} finished on test run'.format(agent))
+
 
 
 if __name__=='__main__':
@@ -136,5 +166,10 @@ if __name__=='__main__':
         print('Need to provide filenames for tick and signal data')
 
     Sample = BOFAStrategy(tickdata=tickdata,signaldata=signaldata)
-    Sample.run(debug=True)
+    Sample.run(reset=True,debug=True)
     Sample.download_results('Algosoc2020')
+    Sample.save_agent('Algosoc2020')
+
+    test_agent('Algosoc2020',tickdata,signaldata)
+
+
