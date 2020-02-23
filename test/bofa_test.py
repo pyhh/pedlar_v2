@@ -1,12 +1,11 @@
-# Access scripts from 
-import sys
-sys.path.append('../')
-from icalgodemo import BOFAStrategy
+# Assum the test is run at the top directory
+
+# from icalgodemo import BOFAStrategy
 
 import pandas as pd
 
 def func(x):
-    EURGBP = pd.read_csv('../icalgodemo/data/EURGBP.csv')
+    EURGBP = pd.read_csv('icalgodemo/data/EURGBP.csv')
     print(EURGBP.shape)
     return x + 1
 
