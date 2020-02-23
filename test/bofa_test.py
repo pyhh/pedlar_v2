@@ -1,6 +1,6 @@
 # Assum the test is run at the top directory
 
-# from icalgodemo import BOFAStrategy
+from icalgodemo import BOFAStrategy
 
 import pandas as pd
 
